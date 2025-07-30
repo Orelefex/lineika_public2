@@ -1,4 +1,5 @@
-/* style.css - ЧАСТЬ 1 */
+/* style.css - ПОЛНЫЙ КОД */
+
 /* Общие стили */
 * {
     margin: 0;
@@ -189,7 +190,6 @@ th {
     background-size: 60px 100%;
     background-position: -1px 0;
 }
-/* style.css - ЧАСТЬ 2 */
 
 /* Контейнер стрелок */
 .arrow-container {
@@ -224,7 +224,6 @@ th {
     background-color: var(--arrow-color);
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     z-index: 10;
-    /* УБРАНО: transition для анимации */
 }
 
 .arrow-head {
@@ -265,7 +264,6 @@ th {
     line-height: 1;
     overflow: hidden;
     text-overflow: ellipsis;
-    /* УБРАНО: transition для анимации */
 }
 
 /* Специальные стили для "минус" */
@@ -356,20 +354,16 @@ th {
     height: auto;
     min-height: 22px;
 }
-/* style.css - ЧАСТЬ 3 */
 
 /* Выделение - УБРАНА АНИМАЦИЯ */
 .highlighted {
     color: #fa0606 !important;
     font-weight: bold;
-    /* УБРАНО: animation: highlight-pulse 2s infinite; */
     position: relative;
     z-index: 2;
 }
 
-/* УБРАНА АНИМАЦИЯ highlight-pulse */
-
-/* Модальное окно */
+/* Модальное окно - ВОССТАНОВЛЕННЫЙ ДИЗАЙН */
 .modal {
     display: none;
     position: fixed;
@@ -379,46 +373,63 @@ th {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
+    overflow-y: auto;
 }
 
 .modal-content {
     background-color: white;
-    margin: 5% auto;
-    padding: 20px;
-    border-radius: 8px;
     width: 90%;
-    max-width: 600px;
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 6px;
     position: relative;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
+.close-btn {
     position: absolute;
-    top: 10px;
     right: 20px;
+    top: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #666;
 }
 
-.close:hover,
-.close:focus {
-    color: black;
+.close-btn:hover {
+    color: #000;
 }
 
-.form-group {
-    margin-bottom: 16px;
+/* Формы */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 4px;
+.condition-item {
+    background-color: #fefefe;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.input-group {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.input-group label {
     font-weight: bold;
+    color: #333;
 }
 
-.form-group input,
-.form-group select {
+.input-group input,
+.input-group select {
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
@@ -426,38 +437,62 @@ th {
     font-size: 14px;
 }
 
-/* Стили для условий */
-.condition-item {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px;
-    margin-bottom: 8px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
+.condition-text-group {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
 }
 
-.condition-item input,
-.condition-item select {
-    flex: 1;
-    min-width: 0;
-}
-
-.remove-condition {
+.remove-condition-btn {
     background-color: #f44336;
     color: white;
+    padding: 6px 12px;
     border: none;
     border-radius: 4px;
-    padding: 4px 8px;
     cursor: pointer;
-    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+.remove-condition-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* Кнопки действий */
+.highlight-btn, .delete-btn {
+    padding: 4px 8px;
+    margin: 0 2px;
     font-size: 12px;
     min-width: 24px;
     height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Уведомления */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 4px;
+    color: white;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.notification.success { 
+    background-color: #4CAF50; 
+}
+
+.notification.error { 
+    background-color: #f44336; 
 }
 
 /* Поддержка браузеров, которые не поддерживают line-clamp */
@@ -590,36 +625,4 @@ td:last-child .arrow-head {
 .pdf-export-container .arrow-head path {
     stroke: black !important;
     stroke-width: 1px !important;
-}
-
-/* Уведомления */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 24px;
-    border-radius: 4px;
-    color: white;
-    font-weight: bold;
-    z-index: 10000;
-    animation: slideIn 0.3s ease-out;
-}
-
-.notification.success {
-    background-color: #4CAF50;
-}
-
-.notification.error {
-    background-color: #f44336;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
 }

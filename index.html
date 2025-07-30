@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аэродромы и метеорологические условия</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="libs\html2canvas.min.js"></script>
+    <script src="libs\xlsx.full.min.js"></script>
+    <script src="libs\jspdf.umd.min.js"></script>
+    <script src="dangerous-weather.js"></script>
+    <script src="auto-resize-text.js"></script>
+    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Аэродромы и метеорологические условия</h1>
+        </header>
+        <main>
+            <section class="table-container">
+                <div class="controls">
+                    <button id="add-airport-btn">Добавить аэродром</button>
+                    <button id="download-png-btn">Сохранить как PNG</button>
+                    <button id="download-pdf-btn">Сохранить как PDF</button>
+                    <button id="download-svg-btn">Сохранить как SVG</button>
+                    <input type="file" id="upload-excel" accept=".xlsx,.xls" style="display: none;">
+                    <button id="upload-excel-btn">Загрузить Excel</button>
+                    <button id="reload-app-btn">Перезагрузить</button>
+                </div>
+                <table id="airports-table">
+                    <thead>
+                        <tr>
+                            <th class="airport-column" rowspan="2">Аэродром</th>
+                            <th class="date-header" colspan="18" id="table-date"></th>
+                            <th class="actions-column" rowspan="2">Действия</th>
+                        </tr>
+                        <tr class="time-headers">
+                            <th class="time-cell">07:00</th>
+                            <th class="time-cell">08:00</th>
+                            <th class="time-cell">09:00</th>
+                            <th class="time-cell">10:00</th>
+                            <th class="time-cell">11:00</th>
+                            <th class="time-cell">12:00</th>
+                            <th class="time-cell">13:00</th>
+                            <th class="time-cell">14:00</th>
+                            <th class="time-cell">15:00</th>
+                            <th class="time-cell">16:00</th>
+                            <th class="time-cell">17:00</th>
+                            <th class="time-cell">18:00</th>
+                            <th class="time-cell">19:00</th>
+                            <th class="time-cell">20:00</th>
+                            <th class="time-cell">21:00</th>
+                            <th class="time-cell">22:00</th>
+                            <th class="time-cell">23:00</th>
+                            <th class="time-cell">24:00</th>
+                        </tr>
+                    </thead>    
+                    <tbody id="table-body"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Модальное окно добавления аэродрома -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2>Добавить аэродром</h2>
+            <form id="add-airport-form">
+                <label for="airport-name">Название аэродрома:</label>
+                <input type="text" id="airport-name" name="airport-name" 
+                       placeholder="Введите название аэродрома" required>
+            
+                <div id="conditions-container"></div>
+                <button type="button" id="add-condition-btn">Добавить условие</button>
+                <button type="submit">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

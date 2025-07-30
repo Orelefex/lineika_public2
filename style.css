@@ -1,3 +1,5 @@
+/* style.css - ПОЛНЫЙ КОД */
+
 /* Общие стили */
 * {
     margin: 0;
@@ -71,14 +73,15 @@ button:hover {
 
 /* Таблица */
 .table-container {
-	width: 100%;
-	overflow-x: auto;
-	margin-top: 16px;
-	padding-bottom: 16px;
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 16px;
+    padding-bottom: 16px;
 }
+
 /* Стили для ячейки с названием аэродрома */
 .airport-name-cell {
-    position: relative!important;
+    position: relative !important;
     background: linear-gradient(
         to right,
         white 0%,
@@ -100,7 +103,6 @@ button:hover {
     width: 1px;
     background-color: #000;
     z-index: 5;
-    
 }
 
 .airport-name-cell::after {
@@ -113,12 +115,6 @@ button:hover {
     background-color: #000;
     z-index: 5;
 }
-/* Добавляем горизонтальные границы только к красной части */
-.airport-name-cell {
-    position: relative;
-    border-top: 1px solid #000;
-    border-bottom: 1px solid #000;
-}
 
 /* Убедимся, что текст читаемый и отображается поверх границ */
 .airport-name-cell span {
@@ -129,20 +125,18 @@ button:hover {
 #airports-table {
     border-collapse: collapse;
     table-layout: fixed;
-    /* min-width: 1330px; */
     border: 1px solid #000;
     width: auto;
 }
 
 th, td {
-    border: 1px solid #ddd;
+    border: 1px solid #000;
     padding: 4px;
     text-align: center;
     background: white;
     height: 32px;
     line-height: 1;
     font-size: 12px;
-    border: 1px solid #000; 
 }
 
 th {
@@ -155,29 +149,31 @@ th {
     top: 0;
     z-index: 2;
 }
-.airport-column {
-	width: 150px !important;
-	min-width: 150px !important;
-	position: sticky;
-	left: 0;
-	z-index: 3;
-}
 
+.airport-column {
+    width: 150px !important;
+    min-width: 150px !important;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+}
 
 /* Колонка действий фиксированной ширины */
 .actions-column {
-	width: 100px !important;
-	min-width: 100px !important;
-	position: sticky;
-	right: 0;
-	z-index: 3;
+    width: 100px !important;
+    min-width: 100px !important;
+    position: sticky;
+    right: 0;
+    z-index: 3;
 }
+
 /* Дата и время */
 #table-date {
     text-align: center;
     font-size: 18px;
     font-weight: bold;
 }
+
 /* Ячейки времени с фиксированной шириной */
 .time-cell {
     width: 60px !important;
@@ -194,7 +190,6 @@ th {
     background-size: 60px 100%;
     background-position: -1px 0;
 }
-
 
 /* Контейнер стрелок */
 .arrow-container {
@@ -217,7 +212,7 @@ th {
 /* Стрелка */
 .arrow {
     position: relative;
-    height: 22px !important;;
+    height: 22px !important;
     width: calc(100% - 7px);
     display: flex;
     align-items: center;
@@ -229,9 +224,7 @@ th {
     background-color: var(--arrow-color);
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     z-index: 10;
-    transition: height 0.15s ease-in-out;
 }
-
 
 .arrow-head {
     position: absolute;
@@ -271,7 +264,6 @@ th {
     line-height: 1;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: font-size 0.1s ease-in-out; /* Плавный переход при изменении размера */
 }
 
 /* Специальные стили для "минус" */
@@ -283,37 +275,16 @@ th {
 }
 
 .text-content.red-condition {
-	color: red;
-	font-weight: bold;
-	text-shadow: 
-			-1px -1px 0 white,
-			1px -1px 0 white,
-			-1px 1px 0 white,
-			1px 1px 0 white;
+    color: red;
+    font-weight: bold;
+    text-shadow: 
+        -1px -1px 0 white,
+        1px -1px 0 white,
+        -1px 1px 0 white,
+        1px 1px 0 white;
 }
 
-/* Красный текст внутри стрелки */
-/* Стили для числовых форматов в красном тексте */
-.red-text .numeric-format {
-    display: inline-block;
-    font-size: inherit !important; /* Такой же размер, как у основного текста */
-    line-height: normal;
-    vertical-align: baseline;
-}
-
-.text-content.wrapped {
-    white-space: normal !important;
-    word-wrap: break-word;
-    line-height: 1.3; /* Увеличиваем межстрочный интервал */
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    padding-top: 2px; /* Отступ сверху */
-    padding-bottom: 2px; /* Отступ снизу */
-}
-
-/* Обновленные стили для контейнера красного текста */
+/* Стили для красного текста - ИСПРАВЛЕНО для одинакового размера */
 .red-text {
     color: red;
     font-weight: bold;
@@ -323,11 +294,28 @@ th {
     align-items: center;
     flex-wrap: nowrap;
     vertical-align: baseline;
+    font-size: inherit !important; /* ИСПРАВЛЕНО: наследуем размер */
+}
+
+/* Стили для числовых форматов в красном тексте */
+.red-text .numeric-format {
+    display: inline-block;
+    font-size: inherit !important; /* Такой же размер, как у основного текста */
+    line-height: normal;
+    vertical-align: baseline;
+}
+
+/* Стили для текстовых элементов в красном тексте - ИСПРАВЛЕНО */
+.red-text .word-format {
+    display: inline-block;
+    font-size: inherit !important; /* ИСПРАВЛЕНО: было 0.6em, теперь inherit */
+    line-height: 1;
+    vertical-align: middle;
 }
 
 /* Убираем стандартные стили из CSS, которые могут конфликтовать */
 .text-content .red-text {
-    font-size: inherit; /* Отменяем фиксированный размер */
+    font-size: inherit !important; /* Наследуем размер от родителя */
     line-height: normal;
 }
 
@@ -340,39 +328,25 @@ th {
     border-right: 1px solid black;
 }
 
-
-/* Выделение */
-.highlighted {
-	color: #fa0606 !important;
-	font-weight: bold;
-	animation: highlight-pulse 2s infinite;
-	position: relative;
-	z-index: 2;
-}
-
-/* Дополнительные стили для поддержки переноса текста */
-
-/* Стили для текстовых элементов в красном тексте */
-.red-text .word-format {
-    display: inline-block;
-    font-size: 0.6em !important; /* Уменьшенный размер */
-    line-height: 1;
-    vertical-align: middle;
-}
-
-
-/* Стили для режима с переносом */
+/* Стили для режима с переносом - ИСПРАВЛЕНО с добавлением line-clamp */
 .text-content.wrapped {
     white-space: normal !important;
     word-wrap: break-word;
-    line-height: 1.1;
+    line-height: 1.3; /* Увеличиваем межстрочный интервал */
     overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2; /* ДОБАВЛЕНО: стандартное свойство для совместимости */
+    padding-top: 2px; /* Отступ сверху */
+    padding-bottom: 2px; /* Отступ снизу */
 }
 
 .text-content.wrapped .red-text {
     display: inline-flex;
     flex-wrap: wrap;
     white-space: normal;
+    font-size: inherit !important; /* ИСПРАВЛЕНО: наследуем размер */
 }
 
 /* Стили для стрелки с переносом текста */
@@ -381,19 +355,15 @@ th {
     min-height: 22px;
 }
 
-/* Убираем стандартные стили из CSS, которые могут конфликтовать */
-.text-content .red-text {
-    font-size: inherit; /* Отменяем фиксированный размер */
-    line-height: normal;
+/* Выделение - УБРАНА АНИМАЦИЯ */
+.highlighted {
+    color: #fa0606 !important;
+    font-weight: bold;
+    position: relative;
+    z-index: 2;
 }
 
-@keyframes highlight-pulse {
-	0% { opacity: 1; }
-	50% { opacity: 0.7; }
-	100% { opacity: 1; }
-}
-
-/* Модальное окно */
+/* Модальное окно - ВОССТАНОВЛЕННЫЙ ДИЗАЙН */
 .modal {
     display: none;
     position: fixed;
@@ -487,6 +457,18 @@ form {
     background-color: #d32f2f;
 }
 
+/* Кнопки действий */
+.highlight-btn, .delete-btn {
+    padding: 4px 8px;
+    margin: 0 2px;
+    font-size: 12px;
+    min-width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Уведомления */
 .notification {
     position: fixed;
@@ -513,16 +495,15 @@ form {
     background-color: #f44336; 
 }
 
-/* Кнопки действий */
-.highlight-btn, .delete-btn {
-    padding: 4px 8px;
-    margin: 0 2px;
-    font-size: 12px;
-    min-width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* Поддержка браузеров, которые не поддерживают line-clamp */
+@supports not (line-clamp: 2) {
+    .text-content.wrapped {
+        /* Фоллбэк для старых браузеров */
+        max-height: calc(1.3em * 2); /* 2 строки с учетом line-height */
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 /* Адаптивность */
@@ -582,66 +563,66 @@ select:focus {
 
 /* Печать */
 @media print {
-	.container {
-			width: 100%;
-			margin: 0;
-			padding: 0;
-			box-shadow: none;
-	}
-	
-	.controls {
-			display: none;
-	}
+    .container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    
+    .controls {
+        display: none;
+    }
 
-	.conditions-cell {
-			page-break-inside: avoid;
-			width: 780px !important;
-	}
+    .conditions-cell {
+        page-break-inside: avoid;
+        width: 780px !important;
+    }
 
-	button {
-			display: none;
-	}
+    button {
+        display: none;
+    }
 
-	@page {
-			margin: 0.5cm;
-	}
+    @page {
+        margin: 0.5cm;
+    }
 }
 
 /* Последняя ячейка в строке */
 td:last-child .arrow {
-	width: calc(100% - 14px);
-	margin-right: 13px;
+    width: calc(100% - 14px);
+    margin-right: 13px;
 }
 
 /* Стили для последней стрелки в строке */
 td:last-child .arrow-head {
-	display: block;
-	right: -11px;
+    display: block;
+    right: -11px;
 }
 
 /* Стили для экспорта PDF */
 .pdf-export-container {
-	background: white !important;
+    background: white !important;
 }
 
 .pdf-export-container table {
-	border-collapse: collapse !important;
-	width: 100% !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
 }
 
 .pdf-export-container th,
 .pdf-export-container td {
-	border: 1px solid black !important;
-	padding: 4px !important;
+    border: 1px solid black !important;
+    padding: 4px !important;
 }
 
 .pdf-export-container .arrow-head svg {
-	display: block !important;
-	width: 14px !important;
-	height: 22px !important;
+    display: block !important;
+    width: 14px !important;
+    height: 22px !important;
 }
 
 .pdf-export-container .arrow-head path {
-	stroke: black !important;
-	stroke-width: 1px !important;
+    stroke: black !important;
+    stroke-width: 1px !important;
 }

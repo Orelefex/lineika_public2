@@ -1,7 +1,7 @@
 /**
  * auto-resize-text.js - исправленная версия
  * Восстанавливаем функциональность переноса текста при сохранении 
- * разных размеров для чисел и обычных слов
+ * одинакового размера для всех элементов текста
  */
 // Конфигурация шрифта (уменьшенная)
 const FONT_CONFIG = {
@@ -102,23 +102,24 @@ function updateRedTextForWrapping(textElement) {
         redElement.style.display = 'inline-flex';
         redElement.style.flexWrap = 'wrap';
         redElement.style.alignItems = 'center';
+        redElement.style.fontSize = 'inherit'; // ИСПРАВЛЕНО: наследуем размер
         
         // Настраиваем дочерние элементы для правильного переноса
         const numericElements = redElement.querySelectorAll('.numeric-format');
         const wordElements = redElement.querySelectorAll('.word-format');
         
         numericElements.forEach(el => {
-            // Для числовых форматов устанавливаем стиль inline-block для переноса
             el.style.display = 'inline-block';
             el.style.whiteSpace = 'normal';
-            el.style.margin = '0 2px 0 0'; // Добавляем небольшой отступ справа
+            el.style.margin = '0 2px 0 0';
+            el.style.fontSize = 'inherit'; // ИСПРАВЛЕНО: наследуем размер
         });
         
         wordElements.forEach(el => {
-            // Для текстовых форматов тоже устанавливаем inline-block
             el.style.display = 'inline-block';
             el.style.whiteSpace = 'normal';
-            el.style.margin = '0 2px 0 0'; // Добавляем небольшой отступ справа
+            el.style.margin = '0 2px 0 0';
+            el.style.fontSize = 'inherit'; // ИСПРАВЛЕНО: наследуем размер (было 0.6em)
         });
     });
 }
@@ -170,18 +171,18 @@ function processRedTextStructure(textElement) {
             const wordSpan = document.createElement('span');
             wordSpan.textContent = word;
             
-            // Проверяем, является ли слово числовым форматом
+            // ИСПРАВЛЕНИЕ: Все элементы красного текста имеют одинаковый размер
             if (isNumericFormat(word)) {
-                // Числовой формат - не уменьшаем
-                wordSpan.style.fontSize = 'inherit'; // Наследуем размер от родителя
+                // Числовой формат - наследуем размер от родителя
+                wordSpan.style.fontSize = 'inherit'; 
                 wordSpan.style.lineHeight = 'normal';
                 wordSpan.style.verticalAlign = 'baseline';
                 wordSpan.classList.add('numeric-format');
             } else {
-                // Текстовый формат - уменьшаем
-                wordSpan.style.fontSize = '0.6em';
-                wordSpan.style.lineHeight = '1';
-                wordSpan.style.verticalAlign = 'middle';
+                // ИЗМЕНЕНО: Текстовый формат тоже наследует размер (было 0.6em)
+                wordSpan.style.fontSize = 'inherit'; 
+                wordSpan.style.lineHeight = 'normal';
+                wordSpan.style.verticalAlign = 'baseline';
                 wordSpan.classList.add('word-format');
             }
             
@@ -200,6 +201,7 @@ function processRedTextStructure(textElement) {
         redTextElement.style.display = 'inline-flex';
         redTextElement.style.alignItems = 'center';
         redTextElement.style.flexWrap = 'nowrap';
+        redTextElement.style.fontSize = 'inherit'; // ИСПРАВЛЕНО: наследуем размер
     });
 }
 

@@ -427,22 +427,6 @@ const createArrowHead = (color) => `
 // Основной класс приложения
 class AirportApp {
     #elements = new Map();
-        // Метод для применения автоматического изменения размера шрифта к стрелкам
-    applyFontAutoResizeToArrows(row) {
-        // Выбираем все стрелки в данной строке
-        const arrowWrappers = row.querySelectorAll('.arrow-wrapper');
-        
-        // Обрабатываем каждую стрелку
-        arrowWrappers.forEach(wrapper => {
-            const arrow = wrapper.querySelector('.arrow');
-            const textContent = arrow.querySelector('.text-content');
-            
-            if (arrow && textContent) {
-                // Применяем автоматическое изменение размера шрифта
-                autoResizeTextToFit(textContent, arrow);
-            }
-        });
-    }
     applyTextAdaptationToArrows(row) {
         // Выбираем все стрелки в данной строке
         const arrowWrappers = row.querySelectorAll('.arrow-wrapper');
@@ -464,13 +448,6 @@ class AirportApp {
         const rows = this.#getElement('table-body').querySelectorAll('tr');
         rows.forEach(row => {
             this.applyTextAdaptationToArrows(row);
-        });
-    }
-    // Метод для применения автоматического изменения размера шрифта ко всем стрелкам в таблице
-    applyFontAutoResizeToAllArrows() {
-        const rows = this.#getElement('table-body').querySelectorAll('tr');
-        rows.forEach(row => {
-            this.applyFontAutoResizeToArrows(row);
         });
     }
     constructor() {
@@ -576,7 +553,8 @@ class AirportApp {
 collectConditionsData() {
     const conditions = [];
     const conditionItems = this.#getElement('conditions-container').querySelectorAll('.condition-item');
-    
+    let currentPosition = 0;
+
     conditionItems.forEach((item, index) => {
         const mainText = item.querySelector('.conditions-main')?.value.trim() || '';
         const redText = item.querySelector('.conditions-red')?.value.trim() || '';
@@ -584,18 +562,23 @@ collectConditionsData() {
         const arrowHours = parseFloat(item.querySelector('.arrow-hours')?.value || 1);
         const arrowColor = item.querySelector('.arrow-color')?.value || '#E9FFEA';
 
-        // Проверяем обязательные поля
         if (!mainText && !redText) return;
 
-        // Создаем объект условия
+        const clampedHours = Math.min(
+            Math.max(arrowHours, CONSTANTS.MIN_ARROW_HOURS),
+            CONSTANTS.MAX_ARROW_HOURS - currentPosition
+        );
+
         conditions.push({
             mainText,
             redText,
             afterText,
-            arrowHours: Math.min(Math.max(arrowHours, CONSTANTS.MIN_ARROW_HOURS), CONSTANTS.MAX_ARROW_HOURS),
+            arrowHours: clampedHours,
             arrowColor,
-            startPosition: 0 // Будет установлено при добавлении в интерфейс
+            startPosition: currentPosition
         });
+
+        currentPosition += clampedHours;
     });
 
     return conditions;
@@ -664,49 +647,53 @@ collectConditionsData() {
         `);
     }
 
-    addConditionField() {
-        this.#getElement('conditions-container').insertAdjacentHTML('beforeend', `
+    #createConditionHTML({ mainText = '', redText = '', afterText = '', arrowHours = 1, arrowColor = '', step = '0.1' } = {}) {
+        return `
             <div class="condition-item">
                 <div class="condition-text-group">
                     <div class="input-group">
                         <label for="conditions-main">Основной текст:</label>
-                        <input type="text" class="conditions-main" name="conditions-main" 
-                               placeholder="Основной текст">
+                        <input type="text" class="conditions-main" name="conditions-main"
+                               value="${mainText}" placeholder="Основной текст">
                     </div>
-                    
+
                     <div class="input-group">
                         <label for="conditions-red">Красный текст:</label>
-                        <input type="text" class="conditions-red" name="conditions-red" 
-                               placeholder="Текст красным цветом">
+                        <input type="text" class="conditions-red" name="conditions-red"
+                               value="${redText}" placeholder="Текст красным цветом">
                     </div>
-                    
+
                     <div class="input-group">
                         <label for="conditions-after">Текст после:</label>
-                        <input type="text" class="conditions-after" name="conditions-after" 
-                               placeholder="Текст после красного">
+                        <input type="text" class="conditions-after" name="conditions-after"
+                               value="${afterText}" placeholder="Текст после красного">
                     </div>
                 </div>
                 <div class="input-group">
                     <label for="arrow-hours">Количество часов:</label>
-                    <input type="number" class="arrow-hours" name="arrow-hours" 
-                           required min="${CONSTANTS.MIN_ARROW_HOURS}" 
-                           max="${CONSTANTS.MAX_ARROW_HOURS}" step="0.1" value="1">
+                    <input type="number" class="arrow-hours" name="arrow-hours"
+                           required min="${CONSTANTS.MIN_ARROW_HOURS}"
+                           max="${CONSTANTS.MAX_ARROW_HOURS}" step="${step}" value="${arrowHours}">
                 </div>
-                
+
                 <div class="input-group">
                     <label for="arrow-color">Цвет стрелки:</label>
                     <select class="arrow-color" name="arrow-color" required>
-                        ${AVAILABLE_COLORS.map(color => 
-                            `<option value="${color.value}" style="background-color: ${color.value}">
-                                ${color.name}
-                            </option>`
+                        ${AVAILABLE_COLORS.map(color =>
+                            `<option value="${color.value}"
+                             ${color.value === arrowColor ? 'selected' : ''}
+                             style="background-color: ${color.value}">${color.name}</option>`
                         ).join('')}
                     </select>
                 </div>
-                
+
                 <button type="button" class="remove-condition-btn">Удалить условие</button>
             </div>
-        `);
+        `;
+    }
+
+    addConditionField() {
+        this.#getElement('conditions-container').insertAdjacentHTML('beforeend', this.#createConditionHTML());
     }
     addNewAirportRow(airportName, conditions) {
         const row = document.createElement('tr');
@@ -794,50 +781,15 @@ collectConditionsData() {
     addPredefinedCondition() {
         const select = document.getElementById('condition-select');
         const selectedCondition = predefinedConditions[select.value];
-        
-        this.#getElement('conditions-container').insertAdjacentHTML('beforeend', `
-            <div class="condition-item">
-                <div class="condition-text-group">
-                    <div class="input-group">
-                        <label for="conditions-main">Основной текст:</label>
-                        <input type="text" class="conditions-main" name="conditions-main" 
-                               value="${selectedCondition.condition}" placeholder="Основной текст">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="conditions-red">Красный текст:</label>
-                        <input type="text" class="conditions-red" name="conditions-red" 
-                               value="" placeholder="Текст красным цветом">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="conditions-after">Текст после:</label>
-                        <input type="text" class="conditions-after" name="conditions-after" 
-                               value="" placeholder="Текст после красного">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label for="arrow-hours">Количество часов:</label>
-                    <input type="number" class="arrow-hours" name="arrow-hours" 
-                           value="${selectedCondition.arrowHours}" required 
-                           min="${CONSTANTS.MIN_ARROW_HOURS}" 
-                           max="${CONSTANTS.MAX_ARROW_HOURS}" step="1">
-                </div>
-                
-                <div class="input-group">
-                    <label for="arrow-color">Цвет стрелки:</label>
-                    <select class="arrow-color" name="arrow-color" required>
-                        ${AVAILABLE_COLORS.map(color => 
-                            `<option value="${color.value}" 
-                             ${color.value === selectedCondition.arrowColor ? 'selected' : ''}
-                             style="background-color: ${color.value}">${color.name}</option>`
-                        ).join('')}
-                    </select>
-                </div>
-                
-                <button type="button" class="remove-condition-btn">Удалить условие</button>
-            </div>
-        `);
+
+        this.#getElement('conditions-container').insertAdjacentHTML('beforeend',
+            this.#createConditionHTML({
+                mainText: selectedCondition.condition,
+                arrowHours: selectedCondition.arrowHours,
+                arrowColor: selectedCondition.arrowColor,
+                step: '1'
+            })
+        );
     }
 
     handleFormSubmit(event) {
@@ -852,6 +804,12 @@ collectConditionsData() {
         const conditions = this.collectConditionsData();
         if (conditions.length === 0) {
             NotificationService.error('Добавьте хотя бы одно условие');
+            return;
+        }
+
+        const totalHours = conditions.reduce((sum, c) => sum + c.arrowHours, 0);
+        if (totalHours > CONSTANTS.TOTAL_COLUMNS) {
+            NotificationService.error(`Общая длительность (${totalHours}ч) превышает ${CONSTANTS.TOTAL_COLUMNS} колонок`);
             return;
         }
 
@@ -925,60 +883,6 @@ updateProgress(row) {
             wrapper.style.setProperty('--arrow-index', index);
         });
     }
-// Метод загрузки из Excel
-async handleExcelUpload(e) {
-    try {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data, {
-            type: 'array',
-            cellDates: true,
-            cellNF: true,
-            cellText: true
-        });
-
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-
-        const jsonData = XLSX.utils.sheet_to_json(sheet, {
-            header: 1,
-            defval: '',
-            raw: false
-        });
-
-        this.#getElement('table-body').innerHTML = '';
-
-        // Сначала добавляем все строки
-        for (let i = 1; i < jsonData.length; i++) {
-            const row = jsonData[i];
-            if (!row[0]) continue;
-            
-            const airportName = row[0].toString().trim();
-            const conditions = this.processConditions(row.slice(1));
-            
-            if (airportName && conditions.length > 0) {
-                this.addNewAirportRow(airportName, conditions);
-            }
-        }
-
-        // Затем обновляем прогресс для всех строк с небольшой задержкой
-        setTimeout(() => {
-            const rows = this.#getElement('table-body').querySelectorAll('tr');
-            rows.forEach(row => this.updateProgress(row));
-        }, 100);
-
-        this.saveState();
-        NotificationService.success('Данные загружены');
-        e.target.value = '';
-    } catch (error) {
-        console.error('Excel upload error:', error);
-        NotificationService.error(`Ошибка загрузки файла: ${error.message}`);
-        e.target.value = '';
-    }
-}
-
     processConditions(rowData) {
         const conditions = [];
         let currentCondition = null;
@@ -1064,59 +968,7 @@ parseCondition(value) {
     };
 }
 
-// Обновляем функцию processConditions для объединения последовательных условий того же типа
-processConditions(rowData) {
-    const conditions = [];
-    let currentCondition = null;
-    
-    rowData.forEach((value, index) => {
-        if (!value) {
-            if (currentCondition) {
-                conditions.push(currentCondition);
-                currentCondition = null;
-            }
-            return;
-        }
-        
-        const condition = this.parseCondition(value.toString().trim());
-        if (!condition) return;
 
-        if (!currentCondition) {
-            currentCondition = {
-                ...condition,
-                startPosition: index,
-                arrowHours: 1
-            };
-        } else {
-            const isSameCondition = this.areConditionsEqual(currentCondition, condition);
-            if (isSameCondition && index === currentCondition.startPosition + currentCondition.arrowHours) {
-                currentCondition.arrowHours++;
-            } else {
-                conditions.push(currentCondition);
-                currentCondition = {
-                    ...condition,
-                    startPosition: index,
-                    arrowHours: 1
-                };
-            }
-        }
-    });
-
-    if (currentCondition) {
-        conditions.push(currentCondition);
-    }
-
-    return conditions;
-}
-
-// Проверка равенства условий для объединения в одну стрелку
-areConditionsEqual(condition1, condition2) {
-    // Проверяем все части текста и цвет
-    return condition1.mainText === condition2.mainText &&
-           condition1.redText === condition2.redText &&
-           condition1.afterText === condition2.afterText &&
-           condition1.arrowColor === condition2.arrowColor;
-}
 
 // Обновленный метод createArrows для правильного отображения форматирования
 createArrows(conditions) {
@@ -1208,31 +1060,6 @@ getConditionColor(text) {
         case 4: return '#FDCDC9'; // Красный
         default: return '#FDCDC9'; // Красный по умолчанию
     }
-}
-
-
-// Метод создания стрелок
-createArrows(conditions) {
-    return conditions.map(condition => {
-        const width = (condition.arrowHours * CONSTANTS.CELL_WIDTH) - 2;
-        const left = (condition.startPosition || 0) * CONSTANTS.CELL_WIDTH + 1;
-        
-        return `
-            <div class="arrow-wrapper" style="left: ${left}px; width: ${width}px;">
-                <div class="arrow" style="background-color: ${condition.arrowColor};">
-                    <div class="text-container">
-                        <div class="text-content ${condition.arrowColor === '#FDCDC9' ? 'red-condition' : ''}" 
-                             ${condition.mainText === 'минус' ? 'data-text="минус"' : ''}>
-                            ${condition.mainText}
-                            ${condition.redText ? `<span class="red-text">${condition.redText}</span>` : ''}
-                            ${condition.afterText || ''}
-                        </div>
-                    </div>
-                    ${createArrowHead(condition.arrowColor)}
-                </div>
-            </div>
-        `;
-    }).join('');
 }
     initDragAndDrop(row) {
         row.addEventListener('dragstart', e => {

@@ -7,7 +7,7 @@
 const FONT_CONFIG = {
     maxFontSize: 15,    // Уменьшенный размер
     midFontSize: 12,    // Уменьшенный средний размер
-    minFontSize: 10,     // Уменьшенный минимальный размер
+    minFontSize: 8,     // Уменьшенный минимальный размер
     fontStep: 0.5,      // Оставляем как есть
     arrowPadding: 5     // Оставляем как есть
 };
@@ -28,68 +28,82 @@ function checkTextFit(textElement, arrowElement) {
     };
 }
 
+// Определяет, обрезает ли -webkit-line-clamp текст
+function isTextClamped(textElement) {
+    return textElement.scrollHeight > textElement.clientHeight + 1;
+}
+
+// Убирает line-clamp и увеличивает высоту стрелки, когда текст не помещается при минимальном шрифте
+function adjustArrowForOverflow(textElement, arrowElement) {
+    // Убираем line-clamp (причину "...")
+    textElement.style.display = 'block';
+    textElement.style.webkitLineClamp = 'unset';
+    textElement.style.lineClamp = 'unset';
+    textElement.style.maxHeight = 'none';
+    textElement.style.lineHeight = '1.1';
+
+    // Увеличиваем высоту стрелки, чтобы вместить текст
+    const textHeight = textElement.scrollHeight;
+    const maxArrowHeight = 40; // верхний предел
+    const newHeight = Math.min(textHeight + 8, maxArrowHeight);
+    arrowElement.style.setProperty('height', newHeight + 'px', 'important');
+}
+
 // Функция для комбинированного подхода к размещению текста
 async function adaptTextToFit(textElement, arrowElement) {
     // Сначала сбрасываем все стили до начального состояния
     resetTextStyles(textElement);
-    
+
     // Явно устанавливаем стиль отображения
     textElement.style.display = 'inline-block';
     textElement.style.visibility = 'visible';
-    
+
     // Предварительно обрабатываем красный текст
     processRedTextStructure(textElement);
-        
+
     // Проверяем, помещается ли текст с максимальным размером шрифта
-    let fitResult = await checkTextFit(textElement, arrowElement);
+    let fitResult = checkTextFit(textElement, arrowElement);
     if (fitResult.fits) {
         return; // Текст уже помещается, ничего не делаем
     }
-    
-    // Шаг 1: Пробуем уменьшать шрифт до среднего размера
+
+    // Стадия 1: Уменьшаем шрифт 15→12 (одна строка)
     let currentSize = FONT_CONFIG.maxFontSize;
     while (!fitResult.fits && currentSize > FONT_CONFIG.midFontSize) {
         currentSize -= FONT_CONFIG.fontStep;
         textElement.style.fontSize = `${currentSize}px`;
-        fitResult = await checkTextFit(textElement, arrowElement);
-        
-        if (fitResult.fits) {
-            return; // Текст поместился после уменьшения, выходим
-        }
+        fitResult = checkTextFit(textElement, arrowElement);
+        if (fitResult.fits) return;
     }
-    
-    // Шаг 2: Если до сих пор не помещается, включаем перенос строк
+
+    // Стадия 2: Включаем перенос строк (с CSS line-clamp:2)
     textElement.style.whiteSpace = 'normal';
     textElement.classList.add('wrapped');
     arrowElement.classList.add('has-wrapped-text');
-    
-    // ВАЖНО: Устанавливаем max-height для предотвращения выхода за пределы ячейки
-    textElement.style.maxHeight = '28px'; // Высота стрелки с отступами
+    textElement.style.maxHeight = '28px';
     textElement.style.overflow = 'hidden';
-    
-    // Обновляем структуру красного текста для режима с переносом
     updateRedTextForWrapping(textElement);
-    
-    // Проверяем, помещается ли текст после включения переноса
-    fitResult = await checkTextFit(textElement, arrowElement);
-    if (fitResult.fits) {
-        return; // Текст поместился после включения переноса
+
+    fitResult = checkTextFit(textElement, arrowElement);
+    if (fitResult.fits && !isTextClamped(textElement)) {
+        return; // Текст помещается в 2 строки без обрезки
     }
-    
-    // Шаг 3: Если и с переносом не помещается, уменьшаем шрифт до минимума
+
+    // Стадия 3: Уменьшаем шрифт 12→8 с переносом
     currentSize = Math.min(currentSize, FONT_CONFIG.midFontSize);
-    while (!fitResult.fits && currentSize > FONT_CONFIG.minFontSize) {
+    while (currentSize > FONT_CONFIG.minFontSize) {
         currentSize -= FONT_CONFIG.fontStep;
         textElement.style.fontSize = `${currentSize}px`;
-        fitResult = await checkTextFit(textElement, arrowElement);
-        
-        if (fitResult.fits) {
-            return; // Текст поместился после уменьшения с переносом
+        if (!isTextClamped(textElement)) {
+            return; // Текст поместился при меньшем шрифте
         }
     }
-    
-    // Если даже с минимальным шрифтом и переносом текст не помещается,
-    // оставляем как есть - будет обрезан через CSS overflow: hidden
+
+    // Стадия 4: При минимальном шрифте текст всё ещё обрезается →
+    // убираем clamp и увеличиваем стрелку
+    if (isTextClamped(textElement)) {
+        adjustArrowForOverflow(textElement, arrowElement);
+    }
 }
 
 // Функция для настройки красного текста в режиме переноса
@@ -130,14 +144,19 @@ function resetTextStyles(textElement) {
     textElement.style.whiteSpace = 'nowrap';
     textElement.style.maxHeight = '';
     textElement.style.overflow = '';
+    textElement.style.display = '';
+    textElement.style.webkitLineClamp = '';
+    textElement.style.lineClamp = '';
+    textElement.style.lineHeight = '';
     textElement.classList.remove('wrapped');
-    
+
     // Находим родительскую стрелку и убираем класс переноса
     const arrowElement = textElement.closest('.arrow');
     if (arrowElement) {
         arrowElement.classList.remove('has-wrapped-text');
+        arrowElement.style.removeProperty('height');
     }
-    
+
     // Сбрасываем стили для красного текста
     const redTexts = textElement.querySelectorAll('.red-text');
     redTexts.forEach(redText => {
@@ -253,19 +272,3 @@ function setupMutationObserver() {
     return observer;
 }
 
-// Функция для инициализации при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    // Делаем функции доступными глобально
-    window.adaptTextToFit = adaptTextToFit;
-    window.applyTextAdaptationToAllArrows = applyTextAdaptationToAllArrows;
-    window.setupMutationObserver = setupMutationObserver;
-    
-    // Запускаем наблюдатель при загрузке страницы
-    const observer = setupMutationObserver();
-    observer.observe(document.body, { childList: true, subtree: true });
-    
-    // Применяем адаптацию текста к существующим стрелкам
-    setTimeout(() => {
-        applyTextAdaptationToAllArrows();
-    }, 500);
-});

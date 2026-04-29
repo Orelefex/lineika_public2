@@ -332,14 +332,23 @@ th {
 .text-content.wrapped {
     white-space: normal !important;
     word-wrap: break-word;
-    line-height: 1.3; /* Увеличиваем межстрочный интервал */
+    word-break: break-word;
+    line-height: 1.15;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    line-clamp: 2; /* ДОБАВЛЕНО: стандартное свойство для совместимости */
-    padding-top: 2px; /* Отступ сверху */
-    padding-bottom: 2px; /* Отступ снизу */
+    line-clamp: 2;
+    padding: 0 1px;
+}
+
+/* Максимизируем полезную ширину при переносе строк в узких стрелках */
+.arrow.has-wrapped-text .text-container {
+    width: calc(100% - 2px);
+}
+
+.arrow.has-wrapped-text .text-content.wrapped {
+    padding: 0 1px;
 }
 
 .text-content.wrapped .red-text {
@@ -498,9 +507,8 @@ form {
 /* Поддержка браузеров, которые не поддерживают line-clamp */
 @supports not (line-clamp: 2) {
     .text-content.wrapped {
-        /* Фоллбэк для старых браузеров */
-        max-height: calc(1.3em * 2); /* 2 строки с учетом line-height */
-        line-height: 1.3;
+        max-height: calc(1.15em * 2);
+        line-height: 1.15;
         overflow: hidden;
         text-overflow: ellipsis;
     }

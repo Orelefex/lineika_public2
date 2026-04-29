@@ -1,6 +1,6 @@
 /**
  * auto-resize-text.js - исправленная версия
- * Восстанавливаем функциональность переноса текста при сохранении 
+ * Восстанавливаем функциональность переноса текста при сохранении
  * одинакового размера для всех элементов текста
  */
 // Конфигурация шрифта (уменьшенная)
@@ -11,6 +11,16 @@ const FONT_CONFIG = {
     fontStep: 0.5,      // Оставляем как есть
     arrowPadding: 5     // Оставляем как есть
 };
+
+// Адаптивный конфиг шрифта в зависимости от ширины стрелки
+function getFontConfigForArrow(arrowElement) {
+    const w = arrowElement.getBoundingClientRect().width;
+    if (w === 0) return FONT_CONFIG;
+    if (w < 80)  return { maxFontSize: 10, midFontSize: 8, minFontSize: 7 };  // ~1 час
+    if (w < 150) return { maxFontSize: 11, midFontSize: 9, minFontSize: 7 };  // ~2 часа
+    if (w < 220) return { maxFontSize: 13, midFontSize: 10, minFontSize: 8 }; // ~3 часа
+    return FONT_CONFIG;
+}
 
 function checkTextFit(textElement, arrowElement) {
     // Немедленно проверяем без задержки для более точного результата
@@ -49,58 +59,72 @@ function adjustArrowForOverflow(textElement, arrowElement) {
     arrowElement.style.setProperty('height', newHeight + 'px', 'important');
 }
 
-// Функция для комбинированного подхода к размещению текста
-async function adaptTextToFit(textElement, arrowElement) {
-    // Сначала сбрасываем все стили до начального состояния
-    resetTextStyles(textElement);
-
-    // Явно устанавливаем стиль отображения
-    textElement.style.display = 'inline-block';
-    textElement.style.visibility = 'visible';
-
-    // Предварительно обрабатываем красный текст
-    processRedTextStructure(textElement);
-
-    // Проверяем, помещается ли текст с максимальным размером шрифта
-    let fitResult = checkTextFit(textElement, arrowElement);
-    if (fitResult.fits) {
-        return; // Текст уже помещается, ничего не делаем
-    }
-
-    // Стадия 1: Уменьшаем шрифт 15→12 (одна строка)
-    let currentSize = FONT_CONFIG.maxFontSize;
-    while (!fitResult.fits && currentSize > FONT_CONFIG.midFontSize) {
-        currentSize -= FONT_CONFIG.fontStep;
-        textElement.style.fontSize = `${currentSize}px`;
-        fitResult = checkTextFit(textElement, arrowElement);
-        if (fitResult.fits) return;
-    }
-
-    // Стадия 2: Включаем перенос строк (с CSS line-clamp:2)
+// Вспомогательная функция: включает режим переноса строк
+function enableWrapping(textElement, arrowElement) {
     textElement.style.whiteSpace = 'normal';
     textElement.classList.add('wrapped');
     arrowElement.classList.add('has-wrapped-text');
     textElement.style.maxHeight = '28px';
     textElement.style.overflow = 'hidden';
     updateRedTextForWrapping(textElement);
+}
 
-    fitResult = checkTextFit(textElement, arrowElement);
-    if (fitResult.fits && !isTextClamped(textElement)) {
-        return; // Текст помещается в 2 строки без обрезки
+// Функция для комбинированного подхода к размещению текста
+async function adaptTextToFit(textElement, arrowElement) {
+    const cfg = getFontConfigForArrow(arrowElement);
+    const arrowWidth = arrowElement.getBoundingClientRect().width;
+    const isNarrow = arrowWidth > 0 && arrowWidth < 80; // 1-часовая стрелка
+
+    // Сбрасываем стили с размером, подходящим для данной ширины стрелки
+    resetTextStyles(textElement, cfg.maxFontSize);
+
+    textElement.style.display = 'inline-block';
+    textElement.style.visibility = 'visible';
+
+    processRedTextStructure(textElement);
+
+    // Для 1-часовых стрелок сразу включаем перенос и уменьшаем шрифт
+    if (isNarrow) {
+        enableWrapping(textElement, arrowElement);
+        let currentSize = cfg.maxFontSize;
+        while (isTextClamped(textElement) && currentSize > cfg.minFontSize) {
+            currentSize -= FONT_CONFIG.fontStep;
+            textElement.style.fontSize = `${currentSize}px`;
+        }
+        if (isTextClamped(textElement)) {
+            adjustArrowForOverflow(textElement, arrowElement);
+        }
+        return;
     }
 
-    // Стадия 3: Уменьшаем шрифт 12→8 с переносом
-    currentSize = Math.min(currentSize, FONT_CONFIG.midFontSize);
-    while (currentSize > FONT_CONFIG.minFontSize) {
+    // Проверяем, помещается ли текст с начальным размером шрифта
+    let fitResult = checkTextFit(textElement, arrowElement);
+    if (fitResult.fits) return;
+
+    // Стадия 1: уменьшаем шрифт max→mid (одна строка)
+    let currentSize = cfg.maxFontSize;
+    while (!fitResult.fits && currentSize > cfg.midFontSize) {
         currentSize -= FONT_CONFIG.fontStep;
         textElement.style.fontSize = `${currentSize}px`;
-        if (!isTextClamped(textElement)) {
-            return; // Текст поместился при меньшем шрифте
-        }
+        fitResult = checkTextFit(textElement, arrowElement);
+        if (fitResult.fits) return;
     }
 
-    // Стадия 4: При минимальном шрифте текст всё ещё обрезается →
-    // убираем clamp и увеличиваем стрелку
+    // Стадия 2: включаем перенос строк
+    enableWrapping(textElement, arrowElement);
+
+    fitResult = checkTextFit(textElement, arrowElement);
+    if (fitResult.fits && !isTextClamped(textElement)) return;
+
+    // Стадия 3: уменьшаем шрифт mid→min с переносом
+    currentSize = Math.min(currentSize, cfg.midFontSize);
+    while (currentSize > cfg.minFontSize) {
+        currentSize -= FONT_CONFIG.fontStep;
+        textElement.style.fontSize = `${currentSize}px`;
+        if (!isTextClamped(textElement)) return;
+    }
+
+    // Стадия 4: текст всё ещё обрезается → расширяем стрелку
     if (isTextClamped(textElement)) {
         adjustArrowForOverflow(textElement, arrowElement);
     }
@@ -139,8 +163,8 @@ function updateRedTextForWrapping(textElement) {
 }
 
 // Функция для сброса текстовых стилей к начальному состоянию
-function resetTextStyles(textElement) {
-    textElement.style.fontSize = `${FONT_CONFIG.maxFontSize}px`;
+function resetTextStyles(textElement, initialSize = FONT_CONFIG.maxFontSize) {
+    textElement.style.fontSize = `${initialSize}px`;
     textElement.style.whiteSpace = 'nowrap';
     textElement.style.maxHeight = '';
     textElement.style.overflow = '';
